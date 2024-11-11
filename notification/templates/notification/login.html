@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tailwindcss@2.0.3/dist/tailwind.min.css"
+    />
+    <style>
+      :root {
+        --background: hsl(0 0% 85%);
+        --foreground: hsl(0 0% 10%);
+        --primary: hsl(0 0% 80%);
+        --muted: hsl(0 0% 75%);
+        --card: hsl(0 0% 95%);
+        --border: hsl(0 0% 60%);
+        --input: hsl(0 0% 60%);
+      }
+
+      * {
+        border-color: var(--border);
+      }
+
+      body {
+        background-color: var(--background);
+        color: var(--foreground);
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .container {
+        max-width: 400px;
+        margin: auto;
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <div
+      class="flex min-h-screen items-center justify-center bg-background text-foreground"
+    >
+      <div class="container bg-card p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6">Login</h1>
+        <form method="POST" id="loginForm">
+          {% csrf_token %}
+          <div class="mb-4">
+            <label for="email" class="block text-sm font-medium"
+              >Email Address</label
+            >
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              required
+            />
+          </div>
+          <div class="mb-6">
+            <label for="password" class="block text-sm font-medium"
+              >Password</label
+            >
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-black text-white py-2 rounded-md border border-gray-600 hover:bg-gray-800"
+          >
+            Login
+          </button>
+          <div id="message" class="message"></div>
+        </form>
+        <p class="mt-4 text-sm text-muted-foreground">
+          Don't have an account?
+          <a href="/register" class="text-primary">Register</a>
+        </p>
+      </div>
+    </div>
+    <script>
+      document.getElementById('loginForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+        console.log(Object.fromEntries(formData));
+
+        const response = await fetch("{% url 'login-api' %}", {
+          method: 'POST',
+          body: formData,
+          headers: {
+            Accept: 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+          },
+        });
+
+        const messageDiv = document.getElementById('message');
+        messageDiv.innerHTML = '';
+
+        const data = await response.json();
+        if (response.ok) {
+          localStorage.setItem('access_token', data.access);
+          localStorage.setItem('refresh_token', data.refresh);
+          window.location.href = "{% url 'dashboard' %}";
+          
+        }
+        else {
+          const errors = await response.json();
+          for (const key in errors) {
+            if (errors.hasOwnProperty(key)) {
+            messageDiv.innerHTML += `<div class="alert alert-danger">${errors[key]}</div>`;
+            }
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

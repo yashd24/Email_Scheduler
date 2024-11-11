@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Scheduler</title>
+  <link rel="stylesheet" href="https://unpkg.com/tailwindcss@2.0.3/dist/tailwind.min.css">
+  <style>
+    :root {
+      --background: hsl(0 0% 85%);
+      --foreground: hsl(0 0% 10%);
+      --primary: hsl(0 0% 80%);
+      --primary-foreground: hsl(0 0% 10%);
+      --secondary: hsl(0 0% 70%);
+      --secondary-foreground: hsl(0 0% 10%);
+      --accent-foreground: hsl(0 0% 100%);
+      --destructive-foreground: hsl(0 0% 98%);
+      --muted: hsl(0 0% 75%);
+      --muted-foreground: hsl(0 0% 10%);
+      --card: hsl(0 0% 95%);
+      --card-foreground: hsl(0 0% 10%);
+      --popover: hsl(0 0% 100%);
+      --popover-foreground: hsl(240 10% 3.9%);
+      --border: hsl(0 0% 60%);
+      --input: hsl(0 0% 60%);
+      --ring: hsl(0 0% 10%);
+    }
+
+    * {
+      border-color: var(--border);
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      margin-top: 0.5rem;
+      background-color: var(--popover);
+      border-radius: 0.25rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+    }
+
+    .dropdown-content a {
+      display: block;
+      padding: 0.5rem 1rem;
+      color: var(--foreground);
+      text-decoration: none;
+    }
+
+    .dropdown-content a:hover {
+      background-color: var(--muted);
+    }
+  </style>
+</head>
+<body class="antialiased">
+  <div class="flex min-h-screen flex-col bg-background text-foreground">
+    <header class="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 sm:h-16 sm:px-6">
+      <div class="flex items-center gap-2">
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path>
+          <path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path>
+        </svg>
+        <span class="text-lg font-semibold">Email Scheduler</span>
+      </div>
+      <div class="relative">
+        <button id="profileButton" class="rounded-full">
+          <img src="/placeholder.svg" width="36" height="36" alt="Avatar" class="rounded-full" style="aspect-ratio: 36/36; object-fit: cover;">
+        </button>
+        <div id="dropdownContent" class="dropdown-content">
+          <a href="#">Settings</a>
+          <div class="border-t"></div>
+          <a href="#">Logout</a>
+        </div>
+      </div>
+    </header>
+    <main class="flex-1 px-4 py-6 sm:px-6 md:py-8">
+      <div class="container mx-auto max-w-6xl">
+        <section class="mb-8">
+          <div class="flex items-center justify-between">
+            <h1 class="text-2xl font-bold">Dashboard</h1>
+            <button class="btn btn-sm flex items-center">
+              <svg class="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+              </svg>
+              Schedule New Email
+            </button>
+          </div>
+          <p class="mt-2 text-muted-foreground">View and manage your scheduled emails.</p>
+        </section>
+        <section>
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="text-xl font-semibold">Upcoming Emails</h2>
+            <div class="filter-sort-container mb-4">
+              <button class="btn btn-outline btn-sm mr-4">
+                <svg class="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+                Filter
+              </button>
+              <button class="btn btn-outline btn-sm">
+                <svg class="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18"></path>
+                  <path d="M3 12h18"></path>
+                  <path d="M3 18h18"></path>
+                </svg>
+                Sort
+              </button>
+            </div>
+          </div>
+          <table class="w-full table-auto border-collapse">
+            <thead>
+              <tr class="border-b">
+                <th class="py-2 text-left">Email</th>
+                <th class="py-2 text-left">Scheduled Time</th>
+                <th class="py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="py-2">example@example.com</td>
+                <td class="py-2">2024-09-01 10:00 AM</td>
+                <td class="py-2">
+                  <div class="flex flex-col space-y-2">
+                    <button class="btn btn-sm flex items-center">
+                        <svg class="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M16 3l5 5-7 7H9v-2l7-7z"></path>
+                          <path d="M3 17v4h4l10-10-4-4L3 17z"></path>
+                        </svg>
+                        Edit
+                      </button>
+                      
+                      <button class="btn btn-sm btn-destructive flex items-center">
+                        <svg class="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M3 6h18"></path>
+                          <path d="M8 6v12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6"></path>
+                          <path d="M10 6V4a2 2 0 0 1 4 0v2"></path>
+                          <path d="M6 6h-2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6h-2"></path>
+                        </svg>
+                        Delete
+                      </button>
+                      
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script>
+    document.getElementById('profileButton').addEventListener('click', function() {
+      const dropdown = document.getElementById('dropdownContent');
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close the dropdown if clicked outside
+    document.addEventListener('click', function(event) {
+      const profileButton = document.getElementById('profileButton');
+      const dropdown = document.getElementById('dropdownContent');
+      if (!profileButton.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
